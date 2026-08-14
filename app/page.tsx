@@ -3,20 +3,20 @@
 import { useMemo, useState } from 'react'
 import {
   ArrowRight,
-  Bike,
   Check,
-  Clock3,
   Heart,
   Minus,
   Plus,
   SlidersHorizontal,
   Sparkles,
-  Star,
   Tag,
   X,
   Zap,
 } from 'lucide-react'
 import { Navbar } from '@/components/layout/Navbar'
+import { CartItem } from '@/components/cart/CartItem'
+import { FoodCard } from '@/components/food/FoodCard'
+import { RestaurantCard } from '@/components/restaurant/RestaurantCard'
 import { Button } from '@/components/ui/button'
 
 type Restaurant = {
@@ -130,7 +130,7 @@ export default function HomePage() {
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{filteredRestaurants.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} favorite={favorites.includes(restaurant.id)} onFavorite={() => setFavorites((current) => current.includes(restaurant.id) ? current.filter((id) => id !== restaurant.id) : [...current, restaurant.id])} />)}</div>
             {filteredRestaurants.length === 0 && <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">No restaurants found. Try another search.</div>}
           </section>
-          <section className="bg-muted/60"><div className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-14"><p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">Quick bites</p><h2 className="mb-6 text-3xl font-black tracking-tight">Craving something specific?</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{dishes.map((dish) => <DishCard key={dish.id} dish={dish} quantity={cart[dish.id] ?? 0} onAdd={() => addToCart(dish.id)} onRemove={() => removeFromCart(dish.id)} onOpen={() => setSelectedDish(dish)} />)}</div></div></section>
+          <section className="bg-muted/60"><div className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-14"><p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">Quick bites</p><h2 className="mb-6 text-3xl font-black tracking-tight">Craving something specific?</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{dishes.map((dish) => <FoodCard key={dish.id} dish={dish} quantity={cart[dish.id] ?? 0} onAdd={() => addToCart(dish.id)} onRemove={() => removeFromCart(dish.id)} onOpen={() => setSelectedDish(dish)} />)}</div></div></section>
           <section className="mx-auto grid max-w-7xl gap-4 px-4 py-10 md:grid-cols-3 md:px-8 md:py-16"><Feature icon={Zap} title="Lightning fast" copy="Hot and fresh food at your door, without the wait." /><Feature icon={Tag} title="Big on value" copy="Daily deals and easy savings on every order." /><Feature icon={Heart} title="Made local" copy="Your order supports the restaurants around you." /></section>
         </main>
       )}
@@ -138,14 +138,6 @@ export default function HomePage() {
       {selectedDish && <DishModal dish={selectedDish} quantity={cart[selectedDish.id] ?? 0} onClose={() => setSelectedDish(null)} onAdd={() => addToCart(selectedDish.id)} onRemove={() => removeFromCart(selectedDish.id)} />}
     </div>
   )
-}
-
-function RestaurantCard({ restaurant, favorite, onFavorite }: { restaurant: Restaurant; favorite: boolean; onFavorite: () => void }) {
-  return <article className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="relative aspect-[1.55] overflow-hidden"><img src={restaurant.image} alt={restaurant.name} className="size-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute bottom-3 left-3 rounded-md bg-primary px-2 py-1 text-[11px] font-extrabold text-primary-foreground">{restaurant.offer}</span><button onClick={onFavorite} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-background/90" aria-label={`${favorite ? 'Remove' : 'Add'} ${restaurant.name} to favorites`}><Heart className={`size-4 ${favorite ? 'fill-primary text-primary' : ''}`} /></button></div><div className="flex flex-col gap-2 p-4"><div className="flex items-start justify-between gap-2"><div><h3 className="font-bold">{restaurant.name}</h3><p className="mt-1 text-xs text-muted-foreground">{restaurant.cuisine}</p></div><span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs font-bold"><Star className="size-3 fill-primary text-primary" />{restaurant.rating}</span></div><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" />{restaurant.time}</span><span>₹₹</span><span className="ml-auto flex items-center gap-1 text-primary"><Bike className="size-3.5" />Free delivery</span></div></div></article>
-}
-
-function DishCard({ dish, quantity, onAdd, onRemove, onOpen }: { dish: Dish; quantity: number; onAdd: () => void; onRemove: () => void; onOpen: () => void }) {
-  return <article className="overflow-hidden rounded-2xl border border-border bg-card"><button className="block w-full text-left" onClick={onOpen}><div className="relative aspect-[1.15] overflow-hidden"><img src={dish.image} alt={dish.name} className="size-full object-cover transition hover:scale-105" /><span className={`absolute left-3 top-3 size-4 rounded-sm border-2 border-card ${dish.vegetarian ? 'bg-primary' : 'bg-destructive'}`} /></div><div className="flex flex-col gap-1 p-4"><h3 className="font-bold">{dish.name}</h3><p className="line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground">{dish.description}</p><p className="mt-1 font-black">₹{dish.price}</p></div></button><div className="px-4 pb-4">{quantity === 0 ? <Button variant="outline" className="h-9 w-full rounded-lg" onClick={onAdd}>Add to cart <Plus data-icon="inline-end" /></Button> : <div className="flex h-9 items-center justify-between rounded-lg bg-secondary px-3 text-sm font-bold"><button onClick={onRemove} aria-label="Remove item"><Minus className="size-4" /></button><span>{quantity}</span><button onClick={onAdd} aria-label="Add item"><Plus className="size-4" /></button></div>}</div></article>
 }
 
 function Feature({ icon: Icon, title, copy }: { icon: typeof Zap; title: string; copy: string }) {
@@ -160,7 +152,7 @@ function CartView({ cart, subtotal, onAdd, onRemove, onBack, onPlace }: { cart: 
   const items = Object.entries(cart).map(([id, quantity]) => ({ dish: dishes.find((item) => item.id === Number(id))!, quantity }))
   const delivery = subtotal > 399 || subtotal === 0 ? 0 : 39
   const total = subtotal + delivery
-  return <main className="mx-auto min-h-[calc(100vh-64px)] max-w-5xl px-4 py-10 md:px-8"><button onClick={onBack} className="mb-8 flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground">Back to browsing</button><div className="grid gap-8 lg:grid-cols-[1fr_340px]"><div><p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">Your order</p><h1 className="mb-6 text-4xl font-black tracking-tight">Your cart</h1>{items.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-12 text-center"><ShoppingBag className="mx-auto mb-3 size-8 text-muted-foreground" /><p className="font-bold">Your cart is empty</p><button onClick={onBack} className="mt-2 text-sm font-bold text-primary">Browse restaurants</button></div> : <div className="flex flex-col gap-3">{items.map(({ dish, quantity }) => <div key={dish.id} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-3"><img src={dish.image} alt={dish.name} className="size-20 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="truncate font-bold">{dish.name}</p><p className="text-sm text-muted-foreground">₹{dish.price} each</p></div><div className="flex items-center gap-3 rounded-lg bg-secondary px-3 py-2 text-sm font-bold"><button onClick={() => onRemove(dish.id)} aria-label={`Remove ${dish.name}`}><Minus className="size-4" /></button>{quantity}<button onClick={() => onAdd(dish.id)} aria-label={`Add ${dish.name}`}><Plus className="size-4" /></button></div></div>)}</div>}</div><aside className="h-fit rounded-2xl border border-border bg-card p-5"><h2 className="font-black">Bill details</h2><div className="mt-5 flex flex-col gap-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>₹{subtotal}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Delivery fee</span><span>{delivery === 0 ? 'Free' : `₹${delivery}`}</span></div><div className="my-1 border-t border-border" /><div className="flex justify-between text-base font-black"><span>Total</span><span>₹{total}</span></div></div><Button className="mt-6 w-full rounded-xl" disabled={items.length === 0} onClick={onPlace}>Place order <ArrowRight data-icon="inline-end" /></Button></aside></div></main>
+  return <main className="mx-auto min-h-[calc(100vh-64px)] max-w-5xl px-4 py-10 md:px-8"><button onClick={onBack} className="mb-8 flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground">Back to browsing</button><div className="grid gap-8 lg:grid-cols-[1fr_340px]"><div><p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">Your order</p><h1 className="mb-6 text-4xl font-black tracking-tight">Your cart</h1>{items.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-12 text-center"><ShoppingBag className="mx-auto mb-3 size-8 text-muted-foreground" /><p className="font-bold">Your cart is empty</p><button onClick={onBack} className="mt-2 text-sm font-bold text-primary">Browse restaurants</button></div> : <div className="flex flex-col gap-3">{items.map(({ dish, quantity }) => <CartItem key={dish.id} dish={dish} quantity={quantity} onAdd={onAdd} onRemove={onRemove} />)}</div>}</div><aside className="h-fit rounded-2xl border border-border bg-card p-5"><h2 className="font-black">Bill details</h2><div className="mt-5 flex flex-col gap-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>₹{subtotal}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Delivery fee</span><span>{delivery === 0 ? 'Free' : `₹${delivery}`}</span></div><div className="my-1 border-t border-border" /><div className="flex justify-between text-base font-black"><span>Total</span><span>₹{total}</span></div></div><Button className="mt-6 w-full rounded-xl" disabled={items.length === 0} onClick={onPlace}>Place order <ArrowRight data-icon="inline-end" /></Button></aside></div></main>
 }
 
 function Orders() { return <main className="mx-auto min-h-[calc(100vh-64px)] max-w-5xl px-4 py-10 md:px-8"><p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">Your activity</p><h1 className="text-4xl font-black tracking-tight">Orders</h1><div className="mt-8 rounded-2xl border border-border bg-card p-5"><div className="flex items-center justify-between gap-3"><div><p className="font-black">Saffron Street</p><p className="mt-1 text-sm text-muted-foreground">Butter Chicken, Paneer Tikka · ₹648</p></div><span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-bold text-primary">Delivered</span></div><div className="mt-6 flex items-center gap-3 text-sm"><Check className="size-5 text-primary" />Delivered on 12 Aug 2026</div></div></main> }
