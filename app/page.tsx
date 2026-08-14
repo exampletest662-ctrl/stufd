@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { add as addCartItem, remove as removeCartItem } from "@/features/cart/cartSlice";
+import { toggle as toggleFavorite } from "@/features/favorites/favoritesSlice";
 import {
   ArrowRight,
   Check,
@@ -29,8 +32,9 @@ export default function HomePage() {
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("Recommended");
-  const [cart, setCart] = useState<Record<number, number>>({});
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const dispatch = useAppDispatch();
+  const cart = useAppSelector((state) => state.cart);
+  const favorites = useAppSelector((state) => state.favorites);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -57,15 +61,8 @@ export default function HomePage() {
     return filtered;
   }, [category, query, sort]);
 
-  const addToCart = (id: number) =>
-    setCart((current) => ({ ...current, [id]: (current[id] ?? 0) + 1 }));
-  const removeFromCart = (id: number) =>
-    setCart((current) => {
-      const next = { ...current };
-      if ((next[id] ?? 0) > 1) next[id] -= 1;
-      else delete next[id];
-      return next;
-    });
+  const addToCart = (id: number) => dispatch(addCartItem(id));
+  const removeFromCart = (id: number) => dispatch(removeCartItem(id));
   const cartCount = Object.values(cart).reduce(
     (total, count) => total + count,
     0,
@@ -220,13 +217,7 @@ export default function HomePage() {
                   key={restaurant.id}
                   restaurant={restaurant}
                   favorite={favorites.includes(restaurant.id)}
-                  onFavorite={() =>
-                    setFavorites((current) =>
-                      current.includes(restaurant.id)
-                        ? current.filter((id) => id !== restaurant.id)
-                        : [...current, restaurant.id],
-                    )
-                  }
+                  onFavorite={() => dispatch(toggleFavorite(restaurant.id))}
                 />
               ))}
             </div>
@@ -507,6 +498,8 @@ function Orders() {
 }
 
 function Profile() {
+  const user = useAppSelector((state) => state.auth.user);
+
   return (
     <main className="mx-auto min-h-[calc(100vh-64px)] max-w-5xl px-4 py-10 md:px-8">
       <p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">
@@ -517,11 +510,11 @@ function Profile() {
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-4">
             <div className="grid size-14 place-items-center rounded-full bg-secondary text-xl font-black text-primary">
-              AS
+              {user?.initials ?? ""}
             </div>
             <div>
-              <p className="font-black">Aarav Sharma</p>
-              <p className="text-sm text-muted-foreground">aarav@example.com</p>
+              <p className="font-black">{user?.name ?? "Guest"}</p>
+              <p className="text-sm text-muted-foreground">{user?.email ?? ""}</p>
             </div>
           </div>
         </div>
