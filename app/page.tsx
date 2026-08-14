@@ -7,18 +7,12 @@ import {
   Check,
   Clock3,
   Heart,
-  Home,
   Minus,
-  PackageCheck,
   Plus,
-  Search,
-  ShoppingBag,
   SlidersHorizontal,
   Sparkles,
   Star,
   Tag,
-  UserRound,
-  Utensils,
   X,
   Zap,
 } from "lucide-react";
@@ -28,6 +22,7 @@ import { dishes } from "@/data/dishes";
 import { categories } from "@/data/categories";
 import type { Restaurant } from "@/types/restaurant";
 import type { Dish } from "@/types/dishes";
+import { Navbar } from '@/components/layout/Navbar';
 
 
 
@@ -95,79 +90,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 lg:px-8">
-          <button
-            className="flex shrink-0 items-center gap-2"
-            onClick={() => {
-              setTab("Discover");
-              setShowCart(false);
-            }}
-            aria-label="FoodDash home"
-          >
-            <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-              <Utensils className="size-5" />
-            </span>
-            <span className="text-xl font-black tracking-tight">
-              Food<span className="text-primary">Dash</span>
-            </span>
-          </button>
-          <div className="ml-2 hidden items-center gap-2 border-l border-border pl-5 text-sm md:flex">
-            <span className="size-2 rounded-full bg-primary" />
-            Delivering to <strong>Home</strong>
-          </div>
-          <div className="relative ml-auto hidden w-full max-w-sm md:block">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search dishes or restaurants"
-              className="h-10 w-full rounded-xl bg-muted pl-10 pr-4 text-sm outline-none ring-primary transition focus:ring-2"
-            />
-          </div>
-          <nav className="hidden items-center gap-1 lg:flex">
-            <NavButton
-              icon={Home}
-              label="Discover"
-              active={tab === "Discover"}
-              onClick={() => {
-                setTab("Discover");
-                setShowCart(false);
-              }}
-            />
-            <NavButton
-              icon={PackageCheck}
-              label="Orders"
-              active={tab === "Orders"}
-              onClick={() => {
-                setTab("Orders");
-                setShowCart(false);
-              }}
-            />
-            <NavButton
-              icon={UserRound}
-              label="Profile"
-              active={tab === "Profile"}
-              onClick={() => {
-                setTab("Profile");
-                setShowCart(false);
-              }}
-            />
-          </nav>
-          <button
-            className="relative grid size-10 place-items-center rounded-xl border border-border hover:bg-muted"
-            onClick={() => setShowCart(true)}
-            aria-label={`Cart with ${cartCount} items`}
-          >
-            <ShoppingBag className="size-5" />
-            {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {cartCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
+      <Navbar
+        tab={tab}
+        query={query}
+        cartCount={cartCount}
+        onTabChange={setTab}
+        onQueryChange={setQuery}
+        onCartOpen={setShowCart}
+      />
 
       {tab === "Orders" ? (
         <Orders />
@@ -371,85 +301,8 @@ export default function HomePage() {
   );
 }
 
-function NavButton({
-  icon: Icon,
-  label,
-  active,
-  onClick,
-}: {
-  icon: typeof Home;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-    >
-      <Icon className="size-4" />
-      {label}
-    </button>
-  );
-}
-
-function RestaurantCard({
-  restaurant,
-  favorite,
-  onFavorite,
-}: {
-  restaurant: Restaurant;
-  favorite: boolean;
-  onFavorite: () => void;
-}) {
-  return (
-    <article className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative aspect-[1.55] overflow-hidden">
-        <img
-          src={restaurant.image}
-          alt={restaurant.name}
-          className="size-full object-cover transition duration-500 group-hover:scale-105"
-        />
-        <span className="absolute bottom-3 left-3 rounded-md bg-primary px-2 py-1 text-[11px] font-extrabold text-primary-foreground">
-          {restaurant.offer}
-        </span>
-        <button
-          onClick={onFavorite}
-          className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-background/90"
-          aria-label={`${favorite ? "Remove" : "Add"} ${restaurant.name} to favorites`}
-        >
-          <Heart
-            className={`size-4 ${favorite ? "fill-primary text-primary" : ""}`}
-          />
-        </button>
-      </div>
-      <div className="flex flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="font-bold">{restaurant.name}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {restaurant.cuisine}
-            </p>
-          </div>
-          <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs font-bold">
-            <Star className="size-3 fill-primary text-primary" />
-            {restaurant.rating}
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock3 className="size-3.5" />
-            {restaurant.time}
-          </span>
-          <span>₹₹</span>
-          <span className="ml-auto flex items-center gap-1 text-primary">
-            <Bike className="size-3.5" />
-            Free delivery
-          </span>
-        </div>
-      </div>
-    </article>
-  );
+function RestaurantCard({ restaurant, favorite, onFavorite }: { restaurant: Restaurant; favorite: boolean; onFavorite: () => void }) {
+  return <article className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="relative aspect-[1.55] overflow-hidden"><img src={restaurant.image} alt={restaurant.name} className="size-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute bottom-3 left-3 rounded-md bg-primary px-2 py-1 text-[11px] font-extrabold text-primary-foreground">{restaurant.offer}</span><button onClick={onFavorite} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-background/90" aria-label={`${favorite ? 'Remove' : 'Add'} ${restaurant.name} to favorites`}><Heart className={`size-4 ${favorite ? 'fill-primary text-primary' : ''}`} /></button></div><div className="flex flex-col gap-2 p-4"><div className="flex items-start justify-between gap-2"><div><h3 className="font-bold">{restaurant.name}</h3><p className="mt-1 text-xs text-muted-foreground">{restaurant.cuisine}</p></div><span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs font-bold"><Star className="size-3 fill-primary text-primary" />{restaurant.rating}</span></div><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" />{restaurant.time}</span><span>₹₹</span><span className="ml-auto flex items-center gap-1 text-primary"><Bike className="size-3.5" />Free delivery</span></div></div></article>
 }
 
 function DishCard({
