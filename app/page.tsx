@@ -1,24 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { add as addCartItem, remove as removeCartItem } from "@/features/cart/cartSlice";
+import { toggle as toggleFavorite } from "@/features/favorites/favoritesSlice";
 import {
   ArrowRight,
-  Bike,
   Check,
-  Clock3,
   Heart,
-  Home,
   Minus,
-  PackageCheck,
   Plus,
-  Search,
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
-  Star,
   Tag,
-  UserRound,
-  Utensils,
   X,
   Zap,
 } from "lucide-react";
@@ -26,18 +21,20 @@ import { Button } from "@/components/ui/button";
 import { restaurants } from "@/data/restaurants";
 import { dishes } from "@/data/dishes";
 import { categories } from "@/data/categories";
-import type { Restaurant } from "@/types/restaurant";
 import type { Dish } from "@/types/dishes";
-
-
+import { Navbar } from '@/components/layout/Navbar';
+import { CartItem } from '@/components/cart/CartItem';
+import { FoodCard } from '@/components/food/FoodCard';
+import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 
 export default function HomePage() {
   const [tab, setTab] = useState("Discover");
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("Recommended");
-  const [cart, setCart] = useState<Record<number, number>>({});
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const dispatch = useAppDispatch();
+  const cart = useAppSelector((state) => state.cart);
+  const favorites = useAppSelector((state) => state.favorites);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -64,15 +61,8 @@ export default function HomePage() {
     return filtered;
   }, [category, query, sort]);
 
-  const addToCart = (id: number) =>
-    setCart((current) => ({ ...current, [id]: (current[id] ?? 0) + 1 }));
-  const removeFromCart = (id: number) =>
-    setCart((current) => {
-      const next = { ...current };
-      if ((next[id] ?? 0) > 1) next[id] -= 1;
-      else delete next[id];
-      return next;
-    });
+  const addToCart = (id: number) => dispatch(addCartItem(id));
+  const removeFromCart = (id: number) => dispatch(removeCartItem(id));
   const cartCount = Object.values(cart).reduce(
     (total, count) => total + count,
     0,
@@ -95,79 +85,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 lg:px-8">
-          <button
-            className="flex shrink-0 items-center gap-2"
-            onClick={() => {
-              setTab("Discover");
-              setShowCart(false);
-            }}
-            aria-label="FoodDash home"
-          >
-            <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-              <Utensils className="size-5" />
-            </span>
-            <span className="text-xl font-black tracking-tight">
-              Food<span className="text-primary">Dash</span>
-            </span>
-          </button>
-          <div className="ml-2 hidden items-center gap-2 border-l border-border pl-5 text-sm md:flex">
-            <span className="size-2 rounded-full bg-primary" />
-            Delivering to <strong>Home</strong>
-          </div>
-          <div className="relative ml-auto hidden w-full max-w-sm md:block">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search dishes or restaurants"
-              className="h-10 w-full rounded-xl bg-muted pl-10 pr-4 text-sm outline-none ring-primary transition focus:ring-2"
-            />
-          </div>
-          <nav className="hidden items-center gap-1 lg:flex">
-            <NavButton
-              icon={Home}
-              label="Discover"
-              active={tab === "Discover"}
-              onClick={() => {
-                setTab("Discover");
-                setShowCart(false);
-              }}
-            />
-            <NavButton
-              icon={PackageCheck}
-              label="Orders"
-              active={tab === "Orders"}
-              onClick={() => {
-                setTab("Orders");
-                setShowCart(false);
-              }}
-            />
-            <NavButton
-              icon={UserRound}
-              label="Profile"
-              active={tab === "Profile"}
-              onClick={() => {
-                setTab("Profile");
-                setShowCart(false);
-              }}
-            />
-          </nav>
-          <button
-            className="relative grid size-10 place-items-center rounded-xl border border-border hover:bg-muted"
-            onClick={() => setShowCart(true)}
-            aria-label={`Cart with ${cartCount} items`}
-          >
-            <ShoppingBag className="size-5" />
-            {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {cartCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
+      <Navbar
+        tab={tab}
+        query={query}
+        cartCount={cartCount}
+        onTabChange={setTab}
+        onQueryChange={setQuery}
+        onCartOpen={setShowCart}
+      />
 
       {tab === "Orders" ? (
         <Orders />
@@ -292,13 +217,7 @@ export default function HomePage() {
                   key={restaurant.id}
                   restaurant={restaurant}
                   favorite={favorites.includes(restaurant.id)}
-                  onFavorite={() =>
-                    setFavorites((current) =>
-                      current.includes(restaurant.id)
-                        ? current.filter((id) => id !== restaurant.id)
-                        : [...current, restaurant.id],
-                    )
-                  }
+                  onFavorite={() => dispatch(toggleFavorite(restaurant.id))}
                 />
               ))}
             </div>
@@ -318,7 +237,7 @@ export default function HomePage() {
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {dishes.map((dish) => (
-                  <DishCard
+                  <FoodCard
                     key={dish.id}
                     dish={dish}
                     quantity={cart[dish.id] ?? 0}
@@ -371,145 +290,6 @@ export default function HomePage() {
   );
 }
 
-function NavButton({
-  icon: Icon,
-  label,
-  active,
-  onClick,
-}: {
-  icon: typeof Home;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-    >
-      <Icon className="size-4" />
-      {label}
-    </button>
-  );
-}
-
-function RestaurantCard({
-  restaurant,
-  favorite,
-  onFavorite,
-}: {
-  restaurant: Restaurant;
-  favorite: boolean;
-  onFavorite: () => void;
-}) {
-  return (
-    <article className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative aspect-[1.55] overflow-hidden">
-        <img
-          src={restaurant.image}
-          alt={restaurant.name}
-          className="size-full object-cover transition duration-500 group-hover:scale-105"
-        />
-        <span className="absolute bottom-3 left-3 rounded-md bg-primary px-2 py-1 text-[11px] font-extrabold text-primary-foreground">
-          {restaurant.offer}
-        </span>
-        <button
-          onClick={onFavorite}
-          className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-background/90"
-          aria-label={`${favorite ? "Remove" : "Add"} ${restaurant.name} to favorites`}
-        >
-          <Heart
-            className={`size-4 ${favorite ? "fill-primary text-primary" : ""}`}
-          />
-        </button>
-      </div>
-      <div className="flex flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="font-bold">{restaurant.name}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {restaurant.cuisine}
-            </p>
-          </div>
-          <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs font-bold">
-            <Star className="size-3 fill-primary text-primary" />
-            {restaurant.rating}
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock3 className="size-3.5" />
-            {restaurant.time}
-          </span>
-          <span>₹₹</span>
-          <span className="ml-auto flex items-center gap-1 text-primary">
-            <Bike className="size-3.5" />
-            Free delivery
-          </span>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function DishCard({
-  dish,
-  quantity,
-  onAdd,
-  onRemove,
-  onOpen,
-}: {
-  dish: Dish;
-  quantity: number;
-  onAdd: () => void;
-  onRemove: () => void;
-  onOpen: () => void;
-}) {
-  return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card">
-      <button className="block w-full text-left" onClick={onOpen}>
-        <div className="relative aspect-[1.15] overflow-hidden">
-          <img
-            src={dish.image}
-            alt={dish.name}
-            className="size-full object-cover transition hover:scale-105"
-          />
-          <span
-            className={`absolute left-3 top-3 size-4 rounded-sm border-2 border-card ${dish.vegetarian ? "bg-primary" : "bg-destructive"}`}
-          />
-        </div>
-        <div className="flex flex-col gap-1 p-4">
-          <h3 className="font-bold">{dish.name}</h3>
-          <p className="line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground">
-            {dish.description}
-          </p>
-          <p className="mt-1 font-black">₹{dish.price}</p>
-        </div>
-      </button>
-      <div className="px-4 pb-4">
-        {quantity === 0 ? (
-          <Button
-            variant="outline"
-            className="h-9 w-full rounded-lg"
-            onClick={onAdd}
-          >
-            Add to cart <Plus data-icon="inline-end" />
-          </Button>
-        ) : (
-          <div className="flex h-9 items-center justify-between rounded-lg bg-secondary px-3 text-sm font-bold">
-            <button onClick={onRemove} aria-label="Remove item">
-              <Minus className="size-4" />
-            </button>
-            <span>{quantity}</span>
-            <button onClick={onAdd} aria-label="Add item">
-              <Plus className="size-4" />
-            </button>
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
 
 function Feature({
   icon: Icon,
@@ -648,37 +428,13 @@ function CartView({
           ) : (
             <div className="flex flex-col gap-3">
               {items.map(({ dish, quantity }) => (
-                <div
+                <CartItem
                   key={dish.id}
-                  className="flex items-center gap-4 rounded-2xl border border-border bg-card p-3"
-                >
-                  <img
-                    src={dish.image}
-                    alt={dish.name}
-                    className="size-20 rounded-xl object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold">{dish.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      ₹{dish.price} each
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-lg bg-secondary px-3 py-2 text-sm font-bold">
-                    <button
-                      onClick={() => onRemove(dish.id)}
-                      aria-label={`Remove ${dish.name}`}
-                    >
-                      <Minus className="size-4" />
-                    </button>
-                    {quantity}
-                    <button
-                      onClick={() => onAdd(dish.id)}
-                      aria-label={`Add ${dish.name}`}
-                    >
-                      <Plus className="size-4" />
-                    </button>
-                  </div>
-                </div>
+                  dish={dish}
+                  quantity={quantity}
+                  onAdd={onAdd}
+                  onRemove={onRemove}
+                />
               ))}
             </div>
           )}
@@ -742,6 +498,8 @@ function Orders() {
 }
 
 function Profile() {
+  const user = useAppSelector((state) => state.auth.user);
+
   return (
     <main className="mx-auto min-h-[calc(100vh-64px)] max-w-5xl px-4 py-10 md:px-8">
       <p className="mb-2 text-sm font-bold uppercase tracking-[.16em] text-primary">
@@ -752,11 +510,11 @@ function Profile() {
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-4">
             <div className="grid size-14 place-items-center rounded-full bg-secondary text-xl font-black text-primary">
-              AS
+              {user?.initials ?? ""}
             </div>
             <div>
-              <p className="font-black">Aarav Sharma</p>
-              <p className="text-sm text-muted-foreground">aarav@example.com</p>
+              <p className="font-black">{user?.name ?? "Guest"}</p>
+              <p className="text-sm text-muted-foreground">{user?.email ?? ""}</p>
             </div>
           </div>
         </div>
