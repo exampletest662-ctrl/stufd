@@ -9,6 +9,7 @@ import {
   Check,
   Heart,
   Minus,
+  PackageCheck,
   Plus,
   ShoppingBag,
   SlidersHorizontal,
