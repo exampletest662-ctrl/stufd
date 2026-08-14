@@ -126,11 +126,9 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="w-fit rounded-xl px-6"
-                onClick={() =>
-                  document
-                    .getElementById("restaurants")
-                    ?.scrollIntoView({ behavior: "smooth" })
-                }
+                onClick={() => {
+                  window.location.href = "/restaurants"
+                }}
               >
                 Explore restaurants <ArrowRight data-icon="inline-end" />
               </Button>
